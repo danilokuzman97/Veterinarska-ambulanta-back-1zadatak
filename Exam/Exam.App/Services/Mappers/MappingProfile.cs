@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Exam.App.Domain;
 using Exam.App.Services.Dtos;
+using Exam.App.Services.Dtos.Examinations;
 using Exam.App.Services.Dtos.Patients;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Exam.App.Services.Mappers
 {
@@ -9,6 +11,7 @@ namespace Exam.App.Services.Mappers
     {
         public MappingProfile()
         {
+
             CreateMap<ApplicationUser, ProfileDto>();
 
             // CreatePatientDto -> Patient: OwnerId/VetId se NE mapiraju automatski,
@@ -31,9 +34,34 @@ namespace Exam.App.Services.Mappers
 
             // Patient -> ShowPatientDto: spajanje imena i prezimena za vlasnika i veterinara.
             CreateMap<Patient, ShowPatientDto>()
-                .ForMember(dest => dest.AnimalSpecies, opt => opt.MapFrom(src => src.AnimalSpecies.Name))
+                .ForMember(dest => dest.AnimalSpeciesName, opt => opt.MapFrom(src => src.AnimalSpecies.Name))
                 .ForMember(dest => dest.OwnerFullName, opt => opt.MapFrom(src => src.Owner.Name + " " + src.Owner.Surname))
                 .ForMember(dest => dest.VetFullName, opt => opt.MapFrom(src => src.Vet.Name + " " + src.Vet.Surname));
+
+            // ApplicationUser -> VetDto: za dropdown listu veterinara.
+            CreateMap<ApplicationUser, VetDto>()
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.Name + " " + src.Surname));
+
+            // AnimalSpecies -> AnimalSpeciesDto: za dropdown listu vrsta zivotinja.
+            CreateMap<AnimalSpecies, AnimalSpeciesDto>();
+
+            CreateMap<Examination, ShowExaminationDto>()
+                .ForMember(dest => dest.PatientName, opt => opt.MapFrom(src => src.Patient.Name))
+                .ForMember(dest => dest.AnimalSpeciesName, opt => opt.MapFrom(src => src.Patient.AnimalSpecies.Name))
+                .ForMember(dest => dest.PatientAge, opt => opt.MapFrom(src => CalculateAge(src.Patient.BirthDate)));
+
+        }
+        private static int CalculateAge(DateOnly dateOfBirth)
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var age = today.Year - dateOfBirth.Year;
+
+            if (dateOfBirth > today.AddYears(-age))
+            {
+                age--;
+            }
+
+            return age;
         }
     }
 }

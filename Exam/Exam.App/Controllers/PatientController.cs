@@ -8,22 +8,39 @@ namespace Exam.App.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = "Veterinar,Pomocnik")]
-    public class PatientController : ControllerBase
+    public class PatientsController : ControllerBase
     {
         private readonly IPatientService _patientService;
 
-        public PatientController(IPatientService patientService)
+        public PatientsController(IPatientService patientService)
         {
             _patientService = patientService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(
+            [FromQuery] string? vetId,
+            [FromQuery] string? name,
+            [FromQuery] int? animalSpeciesId,
+            [FromQuery] int? ageFrom,
+            [FromQuery] int? ageTo)
         {
-            return Ok(await _patientService.GetAllAsync());
+            return Ok(await _patientService.GetAllAsync(vetId, name, animalSpeciesId, ageFrom, ageTo));
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("vets")]
+        public async Task<IActionResult> GetVets()
+        {
+            return Ok(await _patientService.GetVetsAsync());
+        }
+
+        [HttpGet("species")]
+        public async Task<IActionResult> GetSpecies()
+        {
+            return Ok(await _patientService.GetSpeciesAsync());
+        }
+
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
             return Ok(await _patientService.GetByIdAsync(id));
@@ -41,7 +58,7 @@ namespace Exam.App.Controllers
             return Ok(created);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdatePatientDto dto)
         {
             if (!ModelState.IsValid)
@@ -53,7 +70,7 @@ namespace Exam.App.Controllers
             return Ok(updated);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             await _patientService.DeleteAsync(id);

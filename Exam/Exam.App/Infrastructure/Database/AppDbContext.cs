@@ -16,8 +16,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options) { }
 
-    public DbSet<AnimalSpecies> PetSpecies { get; set; }
+    public DbSet<AnimalSpecies> AnimalSpecies { get; set; }
     public DbSet<Patient> Patients { get; set; }
+    public DbSet<Examination> Examinations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,6 +66,18 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(p => p.Vet)
             .WithMany()
             .HasForeignKey(p => p.VetId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Examination>()
+            .HasOne(p => p.Patient)
+            .WithMany()
+            .HasForeignKey(e => e.PatientId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Examination>()
+            .HasOne(e => e.Vet)
+            .WithMany()
+            .HasForeignKey(e => e.VetId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
